@@ -1,0 +1,528 @@
+---
+title: "FNCE 2700 HW"
+author: "Neil Swarup, Kyle Riener, Leo Barbosa, Carlos Rengifo, and Darrell Shih"
+date: "9/14/2017"
+output: html_document
+---
+
+<br \>
+
+> ### Part 0
+
+```{r echo = FALSE}
+options(width = 3000)
+library(knitr)
+library(kableExtra)
+
+p=800000
+rm=.04/12
+p2=800000
+n=360
+
+##monthly payments function
+monthly.payments<-function(p, rm, n) {
+maf=1/(rm)-1/(rm*(1+rm)^n)
+return(p/maf)
+}
+
+mp<-monthly.payments(p, rm, n)
+
+##matrix function for original 
+new.mat<-function(n){
+mt=matrix(nrow=n+1, ncol=6)
+colnames(mt) <- c("Month", "Initial Bal", "Interest on Bal", "Monthly Payment", "Amoritiz of Loan", "End Balance")
+
+for(i in 1:n){
+  mt[i,1]=i
+  mt[i,2]=p2
+  mt[i,3]=p2*rm
+  mt[i,4]=mp
+  mt[i,5]=mp-mt[i,3]
+  mt[i,6]=p2-mt[i,5]
+  
+  p2=mt[i,6]
+}
+
+return(mt)
+}
+
+
+
+mt<-new.mat(n)
+
+
+```
+
+
+
+
+<span style="color:dimgray">**1.** What will be your monthly mortgage payments?</span>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ `r mp`
+<br \>
+
+The first few month's would look like so:
+
+`r kable(head(mt))`
+
+
+```{r echo = FALSE}
+fm = mt[1,3] #first month towards pay off interest 
+al = mt[1,5]
+```
+<br \>
+
+
+<span style="color:dimgray">**2.** How much of your first month’s payment goes toward paying off interest? How much goes toward paying off the loan balance?</span>
+  <br \>
+  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ `r fm`  of your $ `r mp` goes towards interest
+
+<br \>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ `r al`  of your $ `r mp` goes towards paying off the loan
+
+<br \>
+
+
+<span style="color:dimgray">**3.** How much do you still owe after 5 years (i.e., just after your 60th monthly payment)?</span>
+
+
+
+
+```{r echo = FALSE}
+
+out=mt[60,6]
+kable(cat("$", out))
+```
+
+
+
+```{r echo = FALSE}
+
+print(mt[60,])
+
+```
+
+<br \>
+<span style="color:dimgray">**4.** How long will it take you to reduce your loan balance by half (i.e., ≤ $400,000)?</span>
+
+
+```{r echo = FALSE}
+
+reduceByHalf<-mt[(mt[,6]<400000),1]
+
+```
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; It will take you `r reduceByHalf[1]` months of payment
+
+<br \>
+
+<span style="color:dimgray">**5.** Suppose in 20 years (just after your 240th monthly payment), you decide to refinance at a 10‐year fixed rate of 3.200%. What will be your new monthly mortgage payments?</span>
+
+```{r echo = FALSE}
+kable(mt[238:240,])
+bal240=as.numeric(mt[240,6])
+bal240b=bal240
+options(scipen = 999)
+```
+  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; As we can see from the snippet above, the 240th month ends with a balance of $`r bal240b` 
+
+
+
+```{r echo = FALSE}
+
+
+newRm=.032/12
+period=10*12
+newMp<-monthly.payments(bal240, newRm, period)
+
+
+```
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Using that along with out new monthly rate, $r_{new} = .032/12$, we find out new monthly payment to be: $ `r newMp`
+
+```{r echo = FALSE}
+
+p=bal240
+rm=newRm
+p2=bal240
+n=period
+
+
+##monthly payments function
+monthly.payments<-function(p, rm, n) {
+maf=1/(rm)-1/(rm*(1+rm)^n)
+return(p/maf)
+}
+
+mp<-monthly.payments(p, rm, n)
+
+##matrix function
+new.mat<-function(n){
+mt=matrix(nrow=n+1, ncol=6)
+colnames(mt) <- c("Month", "Initial Bal", "Interest on Bal", "Monthly Payment", "Amoritiz of Loan", "End Balance")
+
+for(i in 1:n){
+  mt[i,1]=i
+  mt[i,2]=p2
+  mt[i,3]=p2*rm
+  mt[i,4]=mp
+  mt[i,5]=mp-mt[i,3]
+  mt[i,6]=p2-mt[i,5]
+  
+  p2=mt[i,6]
+}
+
+return(mt)
+}
+
+mt<-new.mat(n)
+
+
+
+
+
+mt<-new.mat(period)
+
+
+```
+
+<br \>
+
+<br \>
+
+
+Those first few payments under the new plan (after refinancing) would look like so:  
+
+<br \>
+
+```{r echo = FALSE}
+kable(head(mt)) 
+
+```
+
+
+> ### Part 1
+
+<span style="color:dimgray">Estimate the (annual) market risk premium using the five‐year time series of monthly pricing data from August 2012 through August 2017 (inclusive). Use the S&P500 Composite Index as your proxy for the “market” (in the “Get Quotes” box type “^GSPC”).
+The monthly closing prices are provided under the “historical prices” tab. From here, you can calculate monthly stock returns. The prices reported here are adjusted prices—which means stock splits and dividend payments have already been factored in such that you need only to calculate the percentage change in these ‘adjusted’ prices to derive the stock returns.
+I don’t need to see the *full* history of returns calculations, but I’d like a printout of the first few calculations so that I can follow your work.</span>
+
+```{r include=FALSE}
+
+library(quantmod)
+library(knitr)
+library(kableExtra)
+rfa = 0.02
+
+
+```
+
+```{r echo = FALSE}
+#PART 1 OF HOMEWORK
+
+#msdata<-read.csv(file.choose(), header=TRUE) # for choosing file - used direct choice file in wd instead
+msdata<-read.csv("ms3.csv", header=TRUE) # for auto choosing file if in the same working directory
+
+m=msdata
+
+ret=msdata
+
+names(ret)[2] = "MSFT Monthly Returns"
+names(ret)[3] = "KO Monthly Returns"
+names(ret)[4] = "S&P Monthly Returns"
+
+for (i in 1:61){
+  ret[i+1,2] = ((m[i+1,2]-m[i,2])/(m[i,2]))
+  ret[i+1,3] = ((m[i+1,3]-m[i,3])/(m[i,3]))
+  ret[i+1,4] = ((m[i+1,4]-m[i,4])/(m[i,4]))
+}
+
+
+```
+
+
+```{r echo = FALSE}
+ret[1,2] = "NA" #since we are not using data for July 2012 we can't have a return for Aug 2012
+ret[1,3] = "NA"
+ret[1,4] = "NA"
+
+ret<-ret[-62,]
+
+#PART 3 OF HOMEWORK
+
+
+bh1<-ret
+bh2<-ret
+
+
+bh1<-ret[-1,]
+
+bh2<-ret[-1,]
+kable(head(bh1))
+
+```
+  
+**NOTE:** Our returns start on September 2012 instead of August 2012 since we do not have data for July 2012 in our data set. In order to do the return for August 2012 we would need to use the data for July 2012. 
+  
+```{r echo = FALSE}
+
+
+
+test1<-bh1[,2]
+test2<-bh1[,4]
+test3<-bh1[,3]
+
+b2 <- as.numeric(test1)
+b3 <- as.numeric(test3)
+b4 <- as.numeric(test2)
+
+##b2 with returns left in, and b2e etc are the returns without excess
+
+rf = 0.02/12 # risk free in decimal form monthly
+
+
+rfm = matrix(rf,nrow = 60,  ncol= 1) #vector filled with rf
+b2e = (b2-rfm)#subtract the rf rate from all entries in b2 - MSFT
+b3e = (b3-rfm)#subtract the rf rate from all entries in b3 - KO
+b4e = (b4-rfm)#subtract the rf rate from all entries in b4 - S&P
+
+
+
+```
+
+<br \> <br \>
+The risk free rate was given to us as 2% annually. We have to annualize our Average Monthly Return:
+
+<br \>
+<br \>
+
+$$Annual Market Risk Premium = AvgMonthlyReturnsMarket*12 - AnnualRisk Free Rate$$
+
+
+
+```{r echo = FALSE}
+meanb4 = (mean(b4)*12)
+avgRetMarket = (mean(b4)*12)-rfa
+avgRetMarket2 = ((mean(b4)*12)-rfa)*100
+
+
+
+avgRetMsft = mean(b2)*12-rfa
+avgRetKo = mean(b3)*12-rfa
+
+```
+<br \>
+$$The Annual Market Risk Premium (Aug 2012 - 2017): `r avgRetMarket`   \,\,\,   or  \,\,\,   `r avgRetMarket2` \% $$
+
+<br \> <br \>
+
+> ### Part 2
+
+<span style="color:dimgray">Calculate Portfolio Expected Return and Historical Volatility Suppose you invest half of your wealth in MSFT and the other half in KO. Assuming that CAPM holds, what is the annual expected return on your portfolio?
+Based on the five‐year period spanning August 2012 through August 2017...
+</span>
+
+
+
+```{r echo = FALSE}
+#Portfolio 0.5 MSFT and 0.5 KO assuming 
+
+port<-c(b2, b3)
+
+wport= port*0.5
+wport2 = 0.5*b2 + 0.5*b3 # wport2 is newer/correct in comparison to wport1
+
+wport3 = 0.5*b2e + 0.5*b3e
+
+mar= mean(wport2)
+marp = mar*100
+
+aar =mean(wport2)*12
+aarp = aar*100
+
+```
+
+
+
+<span style="color:dimgray">1. What is the historical volatility of your portfolio returns?</span>
+<br \>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\sigma_{portfolio} = `r sd(wport2)`$
+<br \>
+
+<span style="color:dimgray">2. What is the Average Return?</span>  
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2a. Monthly Average Return: `r mar`      or     `r marp` \%  
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2b. Annual Average Return: `r aar`      or   `r aarp` \%  
+
+
+
+<span style="color:dimgray">3. What is the realized return on your investment if you purchased this portfolio on the
+first trading day of August 2012 and sold it on the last trading day of August 2017?</span>
+
+
+
+```{r echo = FALSE}
+realizedRet = ((msdata[61,2]+msdata[61,3]) - (msdata[1,2] + msdata[1,3]))/(msdata[1,2] + msdata[1,3])
+
+realizedRetPercent= realizedRet*100
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $Realized Returns On Our Investment: `r realizedRet`   \,\,\,         or       \,\,\,      `r realizedRetPercent`\%$
+
+
+
+
+```{r echo = FALSE}
+
+meanRetMarket = mean(b4)
+
+meanRetMsft = mean(b2)
+meanRetKo = mean(b3)
+
+expectedPortRet = 0.5*meanRetMsft + 0.5*meanRetKo
+
+AvgMonthlyPortRet = mean(wport2)
+```
+
+
+<br \>
+
+
+
+```{r echo = FALSE}
+
+x = matrix(0,nrow = 60,  ncol= 2)
+x[,1] = 1
+x[,2] = b4
+
+y = t(t(wport3))
+
+betas = solve(t(x) %*% x) %*% t(x) %*% y
+betaWPort = betas[2]
+
+rPortfolio = 0.02 + (betaWPort)*((meanb4) - 0.02)
+rPortfolioPercent = rPortfolio*100
+```
+
+CAPM states that:
+
+$$ r_{portfolio} = r_{risk-free}+\beta_{portfolio}*(r_{market}-r_{risk-free})$$
+<br \>
+
+
+$$\beta_{portfolio} = `r betaWPort`$$
+<br \>
+$$ r_{portfolio} = 0.02 + `r betaWPort` * (`r meanb4` - 0.02)$$
+
+<br \>
+<span style="color:dimgray">Assuming that CAPM holds, what is the annual expected return on your portfolio?</span> 
+<br \> <br \>
+$$ r_{portfolio} = `r rPortfolio`   \,\,\,         or       \,\,\,      `r rPortfolioPercent`\% $$
+
+<br \>
+
+<br \>
+
+
+> ### Part 3
+
+<span style="color:dimgray">Try estimating beta yourself (for both MSFT and KO) using the five‐year time series of monthly stock returns from March 2011 through March 2016 (inclusive).
+Recall that a stock’s beta is calculated as: the covariance between its excess returns and excess market returns (for simplicity, you can just use S&P 500 index returns), divided by the variance of excess market returns—i.e., Cov(rM,ri)/var(rM). (‘excess return’ refers to the return in excess of the riskless rate).</span>
+<br \> <br \>
+To find the betas we can run a linear regression between each stock and the market (we are using the S&P 500 as a proxy for the market).
+
+<br \>
+ 
+
+$$y =\beta x+\epsilon$$
+Oversimplified for brevity: we solve for the squared error (  $\epsilon^{2}$ ) and then:
+<br \> <br \>
+
+
+
+<center>
+
+Take the gradient (derivative) <br \> ⬇ <br \> Set it to zero <br \>  ⬇ <br \> Solve <br \> 
+
+</center>
+<br \>
+We are minimizing the $\epsilon^{2}$. Hence, Least *Square Error*.
+<br \>  
+Eventually we end up with:
+<br \> <br \>
+  
+
+$$\beta = (X^{T} X)^{-1}X^{T}y$$
+
+<br \>
+
+```{r include = FALSE}
+x = matrix(0,nrow = 60,  ncol= 2)
+x[,1] = 1
+x[,2] = b4e
+
+y = t(t(b2e))
+
+print("market")
+x[,2]
+print("MSFT")
+y
+
+
+betas = solve(t(x) %*% x) %*% t(x) %*% y
+cat("Beta for market vs msft (:", betas[2]) # first cell is the constant (y - intercept)
+betas
+bmsft=betas[2] #betas for MSFT
+
+```
+Running the regressions we find:
+  
+$$\beta_{MSFT} = `r bmsft`  $$ 
+
+```{r include = FALSE}
+
+## linear regression for KO vs Market
+
+x = matrix(0,nrow = 60,  ncol= 2)
+x[,1] = 1
+x[,2] = b4e
+
+y = t(t(b3e))
+
+print("KO")
+x[,2]
+print("market")
+y
+
+
+betas = solve(t(x) %*% x) %*% t(x) %*% y
+cat("Beta for market vs KO :", betas[2]) # first cell is the constant (y - intercept)
+betas
+bko=betas[2] #betas for KO
+
+```
+
+$$\beta_{KO} = `r bko`  $$ 
+
+```{r echo = FALSE}
+
+tbms = cov(b2e, b4e)/var(b4e)
+tbkos = cov(b3e, b4e)/var(b4e)
+
+
+```
+<br \> <br \>
+Alternatively, we can find the betas using: $$\beta_{stock}=\frac{Cov (r_{market} , r_{stock})}{Var (r_{market})}$$ 
+<br \>
+
+Using this method we get:
+<br \>
+
+$$\beta_{MSFT} = `r tbms`$$
+
+$$\beta_{KO} = `r tbkos`$$
+
+<br \> <br \>
+
+They are the same!
+
+<br \>  <br \> <br \> <br \>
