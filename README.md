@@ -1,3 +1,3 @@
 # FNCE_2700
 
-Finance bootcamp class at Santa Clara University
+Finance bootcamp class assignment at Santa Clara University
